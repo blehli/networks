@@ -1,0 +1,257 @@
+wide area network -- finals
+
+// if you have 2 rj , u also need 2 internet ports
+// kung ilan ung modem na nakaconnect un ung number
+cloud - rj 11 ung 1AM for modem ( add sa physical )
+      - internet ports is ung 1CE ( add sa physical )
+      - ( config ) DSL add modem 3 then ethernet 8 tapos modem 4 ethernet 9
+
+routers - NM-ESW-161 and HWIC-2T add sa physical
+
+
+** PLDC ROUTER
+
+en
+conf t
+int vlan 2
+ip add 172.17.1.1 255.255.255.0
+no shut
+exit
+
+int range fa1/0-15
+switchport mode access
+switchport access vlan 2
+no shut
+exit
+
+ip dhcp pool PLDC
+network 172.17.1.0 255.255.255.0
+default-router 172.17.1.1
+exit
+
+ip dhcp excluded-address 172.17.1.1
+ip dhcp excluded-address 172.17.1.2
+ip dhcp excluded-address 172.17.1.3
+ip dhcp pool PLDC
+dns-server 172.17.1.2
+end
+copy running-config startup-config
+
+** facebook.com
+ip 172.17.1.3
+subnet 255.255.255.0
+gateway 172.17.1.1
+dns 172.17.1.2
+
+** dns server
+ip 172.17.1.2
+subnet 255.255.255.0
+gateway 172.17.1.1
+
+
+** OFFICE ROUTER
+
+en
+conf t
+int gig0/0
+ip add dhcp
+no shut
+end
+copy running-config startup-config
+
+ // to check if u did it correctly punta ka sa config gigabit0/0 kung may ip na ,edi ok na !
+
+** BAYANTEL router
+
+en
+conf t
+int vlan 2
+ip add 172.16.1.1 255.255.255.0
+no shut
+exit
+
+int range fa1/0-15
+switchport mode access
+switchport access vlan 2
+no shut
+exit
+
+ip dhcp pool Bayantel
+network 172.16.1.0 255.255.255.0
+default-router 172.16.1.1
+exit
+
+ip dhcp excluded-address 172.16.1.1
+ip dhcp excluded-address 172.16.1.2
+ip dhcp excluded-address 172.16.1.3
+ip dhcp pool Bayantel
+dns-server 172.16.1.2
+end
+copy running-config startup-config
+
+
+*route
+
+10.10.1.0
+10.10.2.0
+
+
+
+** PLDC router
+en
+conf t
+int s0/0/0
+ip add 10.10.1.1 255.255.255.0
+no shut
+exit
+router rip
+version 2
+network 172.17.1.0
+network 172.16.1.0
+network 10.10.1.0
+network 10.10.2.0
+end
+copy running-config startup-config
+
+** CONNECTING ROUTER
+en
+conf t
+int s0/0/0
+ip add 10.10.10.2 255.255.255.0
+no shut
+exit
+int s0/0/1
+ip add 10.10.2.1 255.255.255.0
+no shut
+exit
+router rip
+version 2
+network 172.17.1.0
+network 172.16.1.0
+network 10.10.1.0
+network 10.10.2.0
+end
+copy running-config startup-config
+
+
+**BAYATEL ROUTER
+en
+conf t
+int s0/0/1
+ip add 10.10.2.2 255.255.255.0
+no shut
+exit
+router rip
+version 2
+network 172.17.1.0
+network 172.16.1.0
+network 10.10.1.0
+network 10.10.2.0
+end
+copy running-config startup-config
+
+** PLDC DNS serber
+ip 172.17.1.2
+subnet 255.255.255.0
+gateway 172.17.1.1
+
+** BAYATEL DNS serber
+ip 172.17.1.2
+subnet 255.255.255.0
+gateway 172.16.1.1
+
+** google.com
+ip 172.16.1.3
+subnet 255.255.255.0
+gateway 172.16.1.1
+dns 172.16.1.2
+
+*dns service for pldc and bayantel
+name www.google.com address 172.16.1.3
+name www.facebook.com address 172.17.1.3
+
+
+2nd day
+
+** OFFICE ROUTER
+
+en
+conf t
+int g0/1
+no shut
+ip nat inside
+exit
+int g0/1.1
+no shut
+encapsulation dot1Q 2
+ip add 192.168.2.1 255.255.255.0
+ip nat inside
+exit
+int g0/1.2
+no shut
+encapsulation dot1Q 3
+ip add 192.168.3.1 255.255.255.0
+ip nat inside
+exit
+int g0/1.3
+no shut
+encapsulation dot1Q 4
+ip add 192.168.4.1 255.255.255.0
+ip nat inside
+exit
+
+ip dhcp pool n1
+network 192.168.2.0 255.255.255.0
+default-router 192.168.2.1
+exit
+ip dhcp pool n2
+network 192.168.3.0 255.255.255.0
+default-router 192.168.3.1
+exit
+ip dhcp pool n3
+network 192.168.4.0 255.255.255.0
+default-router 192.168.4.1
+exit
+ip dhcp excluded-address 192.168.2.1
+ip dhcp excluded-address 192.168.3.1
+ip dhcp excluded-address 192.168.4.1
+
+access-list 1 permit any
+ip nat inside source list 1 int g0/0 overload
+end
+
+*** vlan sa office
+
+en
+conf t
+vlan 2
+name VLAN2
+exit
+vlan 3
+name VLAN3
+exit
+vlan 4
+name VLAN4
+exit
+
+int fa0/1
+switchport mode access
+switchport access vlan 4
+exit
+int fa0/2
+switchport mode trunk
+exit
+
+** trunk switch
+
+int range fa0/1-3
+switchport mode trunk
+exit
+int g0/1
+switchport mode trunk
+exit
+
+** office router olet
+conf t
+int g0/0
+ip nat outside

@@ -1,0 +1,82 @@
+*** ALL SWITCHES
+en
+conf t
+vlan 2
+name VLAN2
+exit
+vlan 3
+name VLAN3
+exit
+vlan 4
+name VLAN4
+exit
+vlan 5
+name VLAN5
+exit
+vlan 6
+name VLAN6
+end
+
+*** SWITCHES ASIDE FROM TOP SWITCH
+
+conf t
+int range fa0/1-2
+switchport mode access
+switchport access vlan 6
+exit
+int fa0/3
+switchport mode trunk
+end
+copy running-config startup-config
+
+*** TOP SWITCH
+
+conf t
+int range fa0/1-5
+switchport mode trunk
+exit
+int g0/1
+switchport mode trunk
+end
+
+*** ROUTER
+
+en
+conf t
+int g0/1
+no shut
+exit
+
+
+int g0/0.5
+encapsulation dot1Q 6
+ip add 192.168.5.1 255.255.255.0
+no shut
+exit
+
+*** FOR DHCP ( increment lang. sa router to pero pwede din sa switch)
+
+ip dhcp pool n5
+network 192.168.5.0 255.255.255.0
+default-router 192.168.5.1
+exit
+ip dhcp excluded-address 192.168.5.1
+
+
+*** AFTER THIS, YOU CAN SWITCH THE IP ADDRESS OF COMPUTER FROM STATIC TO DHCP
+en
+conf t
+enable secret class
+line con 0
+pass cisco
+login
+exit
+line vty 0 5
+pass cisco
+login
+exit
+end
+copy running-config startup-config
+
+
+

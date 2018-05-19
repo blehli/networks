@@ -1,0 +1,230 @@
+
+
+GOOGLE ISP ***
+
+en
+conf t
+int vlan 2
+ip add 64.223.187.1 255.255.255.0
+no shut
+
+int range fa1/0-15
+switchport mode access
+switchport access vlan 2
+exit
+
+ip dhcp pool ISP
+network 64.223.187.0 255.255.255.0
+default-router 64.223.187.1
+dns-server 64.223.187.2
+exit
+
+ip dhcp excluded-address 64.223.187.1
+ip dhcp excluded-address 64.223.187.2
+ip dhcp excluded-address 64.223.187.3
+ip dhcp excluded-address 64.223.187.4
+ip dhcp excluded-address 64.223.187.5
+ip dhcp excluded-address 64.223.187.6
+ip dhcp excluded-address 64.223.187.7
+end
+
+int range fa1/0-15
+no shut
+exit
+
+copy running-config startup-config
+
+
+GOOGLE PLEX ROUTER DSL ****
+
+int g0/0
+ip nat outside
+no shut
+ip add dhcp
+exit
+ip nat inside source list 1 int g0/0 overload
+end
+
+int s0/0/0
+ip nat inside
+no shut
+ip add 192.168.11.1 255.255.255.0
+exit
+
+int s0/0/1
+ip nat inside
+no shut
+ip add 192.168.12.1 255.255.255.0
+exit
+
+ip route 192.168.2.0 255.255.255.0 192.168.11.2
+ip route 192.168.3.0 255.255.255.0 192.168.11.2
+ip route 192.168.4.0 255.255.255.0 192.168.11.2
+ip route 192.168.5.0 255.255.255.0 192.168.11.2
+ip route 192.168.6.0 255.255.255.0 192.168.12.2
+ip route 192.168.7.0 255.255.255.0 192.168.12.2
+ip route 192.168.8.0 255.255.255.0 192.168.12.2
+ip route 192.168.10.0 255.255.255.0 192.168.12.2
+
+ROUTER NODE 1 ****
+
+int s0/0/0
+no shut
+ip add 192.168.11.2 255.255.255.0
+exit
+
+ip route 192.168.6.0 255.255.255.0 192.168.11.1
+ip route 192.168.7.0 255.255.255.0 192.168.11.1
+ip route 192.168.8.0 255.255.255.0 192.168.11.1
+ip route 192.168.10.0 255.255.255.0 192.168.11.1
+
+ROUTER NODE 2 ****
+
+int s0/0/1
+no shut
+ip add 192.168.12.2 255.255.255.0
+exit
+
+
+ip route 192.168.2.0 255.255.255.0 192.168.12.1
+ip route 192.168.3.0 255.255.255.0 192.168.12.1
+ip route 192.168.4.0 255.255.255.0 192.168.12.1
+ip route 192.168.5.0 255.255.255.0 192.168.12.1
+
+
+
+
+int g0/1.1
+encapsulation dot1Q 2
+ip add 192.168.2.2 255.255.255.0
+no shut
+ip dhcp pool n1
+network 192.168.2.0 255.255.255.0
+default-router 192.168.2.1
+exit
+ip dhcp excluded-address 192.168.2.1
+
+
+int g0/1.2
+encapsulation dot1Q 3
+ip add 192.168.3.2 255.255.255.0
+no shut
+ip dhcp pool n2
+network 192.168.3.0 255.255.255.0
+default-router 192.168.3.1
+exit
+ip dhcp excluded-address 192.168.3.1
+
+
+
+int g0/0.1
+encapsulation dot1Q 6
+ip add 192.168.6.2 255.255.255.0
+no shut
+ip dhcp pool n5
+network 192.168.6.0 255.255.255.0
+default-router 192.168.6.1
+exit
+ip dhcp excluded-address 192.168.6.1
+
+
+
+int g0/0.2
+encapsulation dot1Q 7
+ip add 192.168.7.2 255.255.255.0
+no shut
+ip dhcp pool n6
+network 192.168.7.0 255.255.255.0
+default-router 192.168.7.1
+exit
+ip dhcp excluded-address 192.168.7.1
+
+
+int g0/1.1
+encapsulation dot1Q 8
+ip add 192.168.8.2 255.255.255.0
+no shut
+ip dhcp pool n7
+network 192.168.8.0 255.255.255.0
+default-router 192.168.8.1
+exit
+ip dhcp excluded-address 192.168.8.1
+
+
+
+int g0/1.2
+encapsulation dot1Q 9
+ip add 192.168.10.2 255.255.255.0
+no shut
+ip dhcp pool n8
+network 192.168.10.0 255.255.255.0
+default-router 192.168.10.1
+exit
+ip dhcp excluded-address 192.168.10.1
+
+
+
+router rip
+version 2
+network 192.168.2.0	
+network 192.168.3.0
+network 192.168.4.0
+network 192.168.5.0
+network 192.168.6.0
+network 192.168.7.0
+network 192.168.8.0
+network 192.168.10.0
+end
+
+en
+conf t
+int fa0/2
+switchport mode trunk
+exit
+
+
+en
+conf t
+int range fa0/2-3
+switchport mode trunk
+exit
+int g0/1
+switchport mode trunk
+exit
+
+
+
+en
+conf t
+vlan 2
+name VLAN2
+exit
+vlan 3
+name VLAN3
+exit
+vlan 4
+name VLAN4
+exit
+vlan 5
+name VLAN5
+exit
+vlan 6
+name VLAN6
+exit
+vlan 7
+name VLAN7
+exit
+vlan 8
+name VLAN8
+exit
+vlan 9
+name VLAN9
+end
+copy running-config startup-config
+
+conf t
+int fa0/5
+switchport mode access
+switchport access vlan 9
+end
+copy running-config startup-config

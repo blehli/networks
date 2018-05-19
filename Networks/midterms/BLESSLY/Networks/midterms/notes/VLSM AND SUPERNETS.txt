@@ -1,0 +1,164 @@
+SAMPLE COMPUTATION
+
+192.168.16.0 /23
+NETWORK 192.168.16.0
+SUBNET 255.255.254.0
+WILDCARD 0.0.1.255
+BROADCAST 192.168.17.255
+HOST RANGE 192.168.16.1 TO 192.168.17.254
+---
+192.168.18.0 /24
+NETWORK 192.168.18.0
+SUBNET 255.255.255.0
+WILDCARD 0.0.0.255
+BROADCAST 192.168.18.255
+HOST RANGE 192.168.18.1 TO 192.168.18.254
+---
+192.168.19.0 /25
+NETWORK 192.168.19.0
+SUBNET 255.255.255.128
+WILDCARD 0.0.0.127
+BROADCAST 192.168.19.127
+HOST RANGE 192.168.19.1 TO 192.168.19.126
+---
+192.168.19.128 /26
+NETWORK 192.168.19.128
+SUBNET 255.255.255.192
+WILDCARD 0.0.0.63
+BROADCAST 192.168.19.191
+HOST RANGE 192.168.19.129 TO 192.168.19.190
+---
+192.168.19.192 /26
+NETWORK 192.168.19.192
+SUBNET 255.255.255.192
+WILDCARD 0.0.0.63
+BROADCAST 192.168.19.255
+HOST RANGE 192.168.19.193 TO 192.168.19.254
+---
+192.168.20.0 /30
+NETWORK 192.168.20.0 
+SUBNET 255.255.255.252
+WILDCARD 0.0.0.3
+BROADCAST 192.168.20.3
+HOST RANGE 192.168.20.1 TO 192.168.20.2
+---
+192.168.20.4 /30
+NETWORK 192.168.20.4
+SUBNET 255.255.255.252
+WILDCARD 0.0.0.3
+BROADCAST 192.168.20.7
+HOST RANGE 192.168.20.5 TO 192.168.20.6
+
+
+
+******************ACTIVITY*********************
+RIP COMMANDS
+
+**ROUTER 2
+
+en
+conf t
+int g0/1
+ip add 192.168.1.193 255.255.255.224
+no shut
+exit
+ip dhcp pool n3
+network 192.168.1.192 255.255.255.224
+default-router 192.168.1.193
+exit
+ip dhcp excluded-address 192.168.1.224
+
+
+int g0/0
+ip add 192.168.18.1 255.255.255.0
+no shut
+exit
+ip dhcp pool n2
+network 192.168.18.0 255.255.255.0
+default-router 192.168.18.1
+exit
+ip dhcp excluded-address 192.168.18.1
+
+
+
+**ROUTER 0
+* subnet from computed value
+
+en
+conf t
+int g0/1
+ip add 192.168.19.1 255.255.255.128
+no shut
+exit
+ip dhcp pool n3
+network 192.168.19.0 255.255.255.128
+default-router 192.168.19.1
+exit
+ip dhcp excluded-address 192.168.19.1
+
+int g0/0
+ip add 192.168.19.129 255.255.255.192
+no shut
+exit
+ip dhcp pool n4
+network 192.168.19.129 255.255.255.192
+default-router 192.168.19.129
+exit
+ip dhcp excluded-address 192.168.19.129
+
+
+** ROUTER 1
+
+en
+conf t
+int g0/0
+ip add 192.168.19.193 255.255.255.192
+no shut
+exit
+ip dhcp pool n5
+network 192.168.19.192 255.255.255.192
+default-router 192.168.19.193
+exit
+ip dhcp excluded-address 192.168.19.193
+
+
+** ROUTER 0 olet
+
+conf t
+int s0/1/0
+ip add 192.168.1.242 255.255.255.252
+no shut
+
+int s0/1/1
+ip add 192.168.1.238 255.255.255.252
+no shut
+
+** ROUTER 1
+conf t
+int s0/0/0
+ip add 192.168.1.2 255.255.255.252
+no shut
+exit
+int s0/0/1
+ip add 192.168.1.5 255.255.255.252
+no shut
+
+** ROUTER 2
+int s0/0/1
+ip add 192.168.20.6 255.255.255.252
+no shut
+
+
+**ALL ROUTER !! PARA MAGING STATIC ROUTING ??
+
+conf t
+router rip
+version 2
+network 192.168.1.0
+network 192.168.1.128
+network 192.168.1.192
+network 192.168.1.224
+network 192.168.1.228
+network 192.168.1.232
+network 192.168.1.236
+network 192.168.1.240

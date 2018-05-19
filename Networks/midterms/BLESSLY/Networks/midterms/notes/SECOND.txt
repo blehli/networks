@@ -1,0 +1,117 @@
+*** ROUTER 1
+
+en
+conf t
+
+int g0/0
+ip add 192.168.1.1 255.255.255.0
+no shut
+exit
+
+int g0/1
+ip add 192.168.2.1 255.255.255.0
+no shut
+exit
+
+int s0/1/0
+ip add 192.168.5.1 255.255.255.0
+no shut
+exit
+
+ip route 192.168.4.0 255.255.255.0 192.168.5.2
+ip route 192.168.3.0 255.255.255.0 192.168.5.2
+
+ip dhcp pool n1
+network 192.168.1.0 255.255.255.0
+default-router 192.168.1.1
+exit
+
+ip dhcp pool n2
+network 192.168.2.0 255.255.255.0
+default-router 192.168.2.1
+exit
+
+ip dhcp excluded-address 192.168.1.1
+ip dhcp excluded-address 192.168.2.1
+
+end
+copy running-config startup-config
+
+
+*** ROUTER 0
+
+en
+conf t
+
+int g0/0
+ip add 192.168.4.1 255.255.255.0
+no shut
+exit
+
+int g0/1
+ip add 192.168.3.1 255.255.255.0
+no shut
+exit
+
+int s0/1/0
+ip add 192.168.5.2 255.255.255.0
+no shut
+exit
+
+ip route 192.168.1.0 255.255.255.0 192.168.5.1
+ip route 192.168.2.0 255.255.255.0 192.168.5.1
+
+end
+copy running-config startup-config
+
+*** HTTP server
+check that http and https are on
+put ip address sa server
+
+*** DNS server
+services, dns, on
+you can create a name for an IP address
+	ex. http server - put its ip add
+for DNS server of every static servers and pcs, put the ip add of dns server
+
+*** EMAIL server
+services, email, add domain name then set
+add users and passwords
+go to dns, add another host, with the ip add of email server
+	mail.com with ip add op email server
+go to 1 pc, desktop, email, add details
+// kung ano ginamit mong domain name, un ung dulo ng email address
+
+
+*** ROUTER 1
+** setting the dns server ip of dhcp
+
+en
+conf t
+ip dhcp pool n1
+dns-server 192.168.4.5
+exit
+
+ip dhcp pool n2
+dns-server 192.168.4.5
+end
+copy running-config startup-config
+
+
+*** Router 1
+* denies permit of the ip address to a network
+
+en
+conf t
+access-list 1 deny 192.168.4.2 0.0.0.0 (specifying host, wildcard)
+access-list 1 permit any
+access-list 2 deny 192.168.3.0 0.0.0.255
+access-list 2 permit any
+
+int g0/0
+ip access-group 1 out
+exit 
+int g0/1
+ip access-group 2 out
+exit 
+copy running-config startup-config

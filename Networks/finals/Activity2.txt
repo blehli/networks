@@ -1,0 +1,138 @@
+* put nm 4E in router
+* connect switch g0/1 to router ethernet 1/0
+* go to isp cloud and put 1AM and 1CE then go to config and add modem 3 and modem 4
+* add 161 to router ISP 
+* connect ROUTER ISP to cloud twice fa1/0 to ethernet 8 and fa1/1 to ethernet 9
+* connect DNS server to ROUTER ISP using any port fa1/ any.
+
+
+CONFIGURATION:
+
+// also used in dhcp
+
+** ROUTER ISP 
+
+en
+conf t
+int vlan 2
+ip add 10.10.10.1 255.255.255.0
+no shut
+
+int range fa1/0-15
+switchport mode access
+switchport access vlan 2
+exit
+
+ip dhcp pool ISP
+network 10.10.10.0 255.255.255.0
+default-router 10.10.10.1
+dns-server 10.10.10.2
+exit
+
+ip dhcp excluded-address 10.10.10.1
+ip dhcp excluded-address 10.10.10.2
+ip dhcp excluded-address 10.10.10.3
+end
+
+copy running-config startup-config
+
+** dns server
+
+ip add 10.10.10.2
+subnet 255.255.255.0
+gateway 10.10.10.1
+dns 10.10.10.2
+
+
+TURN ON DNS SERVICE
+www.finals.com
+10.10.10.3
+
+
+*** www.finals.com server
+
+ip 10.10.10.3
+sub 255.255.255.0
+default 10.10.10.1
+dns 10.10.10.2
+
+** router isp
+conf t
+int range fa1/0-15
+no shut
+exit
+
+** 2620 router
+
+en
+conf t
+
+/** CHANGE TO FA0/0
+int eth1/1
+ip nat outside
+no shut
+ip add dhcp
+exit
+**/
+
+int fa0/0
+ip nat outside
+no shut
+ip add dhcp
+exit
+ip nat inside source list 1 int fa0/0 overload
+end
+
+
+int eth1/0
+ip nat inside
+no shut
+exit
+
+int eth1/0.1
+ip nat inside
+no shut
+encapsulation dot1Q 10
+ip add 192.168.10.1 255.255.255.0
+exit
+
+int eth1/0.2
+ip nat inside
+no shut
+encapsulation dot1Q 20
+ip add 192.168.20.1 255.255.255.0
+exit
+
+ip dhcp pool n1
+network 192.168.10.0 255.255.255.0
+default-router 192.168.10.1
+exit
+
+ip dhcp pool n2
+network 192.168.20.0 255.255.255.0
+default-router 192.168.20.1
+exit
+
+ip dhcp excluded-address 192.168.10.1
+ip dhcp excluded-address 192.168.20.1
+
+access-list 1 permit any
+ip nat inside source list 1 int eth1/1 overload
+
+
+VLAN
+
+vlan 10
+name VLAN10
+exit
+vlan 20
+name VLAN20
+exit
+
+int range fa0/5-23
+switchport mode access
+switchport access vlan 20
+exit
+int fa0/1
+switchport mode trunk
+exit
